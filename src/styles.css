@@ -1,3 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+
+@font-face {
+  font-family: 'Modern Prestige';
+  src: url('fonts/Modern-Prestige-DEMO.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+:root {
+  --primary-color: #57B4BA;
+  --secondary-color: #015551;
+  --backgroud-color: #FDFBEE;
+  --accent-color: #ff4081;
+  --text-color: #333;
+  --border-radius: 20px;
+}
 body {
-    background-color: rebeccapurple;
+  font-family: 'Roboto', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: var(--backgroud-color);
+
+}
+
+header > h1 {
+  font-family: 'Modern Prestige', sans-serif;
+}
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-right: 76px;
+  padding-left: 76px;
+
+  background-color: var(--primary-color);
+  color: var(--secondary-color);
+  text-align: center;
+
+}
+
+a {
+  color: var(--accent-color);
+  text-decoration: none;
+}
+#projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 500px));
+  grid-auto-rows: auto;
+  padding: 60px;
+}
+
+
+.project-card {
+  background-color: var(--secondery-color);
+  color: var(--secondary-color);
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: solid 2px var(--secondary-color);
+  padding: 16px;
+  margin: 16px;
+
+  transition: all 0.5s ease;
+  position: relative;
+  overflow: hidden;
+}
+.add-project {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 3rem;
+  background-color: var(--primary-color);
+
+  color: var(--secondary-color);
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 16px;
+  margin: 16px;
+}
+.project-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    0deg, 
+    transparent, 
+    transparent 30%, 
+    var(--secondary-color)
+  );
+  transform: rotate(-45deg);
+  transition: all 0.5s ease;
+  opacity: 0;
+}
+
+.project-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 5px var(--secondary-color);
+  cursor: pointer;
+}
+
+.project-card:hover::before {
+  opacity: 1;
+  transform: rotate(-45deg) translateY(100%);
 }
