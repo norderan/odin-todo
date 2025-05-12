@@ -142,19 +142,37 @@ function loadTodos(projectId) {
   }
 
 
-const todoDeleteButtons = document.querySelectorAll(".delete-todo");
-todoDeleteButtons.forEach(button => {
-  button.addEventListener("click", (e) => {
-    const todoId = e.target.closest(".todo-card").dataset.todoId;
-    console.log("Todo ID:", todoId);
-    const project = controller.getProjectById(projectId);
-    if (project) {
-      project.removeTodo(todoId);
-      clearTodosContainer();
-      loadTodos(projectId);
-    }
+  const todoDeleteButtons = document.querySelectorAll(".delete-todo");
+  todoDeleteButtons.forEach(button => {
+    button.addEventListener("click", (e) => {
+      const todoId = e.target.closest(".todo-card").dataset.todoId;
+      console.log("Todo ID:", todoId);
+      const project = controller.getProjectById(projectId);
+      if (project) {
+        project.removeTodo(todoId);
+        clearTodosContainer();
+        loadTodos(projectId);
+      }
+    });
   });
-});
+
+  const todoCompletionButtons = document.querySelectorAll(".complition-status");
+  todoCompletionButtons.forEach(button => {
+    button.addEventListener("click", (e) => {
+      const todoId = e.target.closest(".todo-card").dataset.todoId;
+      console.log("Todo ID:", todoId);
+      const project = controller.getProjectById(projectId);
+      if (project) {
+        const todo = project.getTodoById(todoId);
+        if (todo) {
+          todo.changeCompletionStatus(!todo.isCompleted);
+          console.log("Todo completion status changed:", todo.isCompleted);
+          clearTodosContainer();
+          loadTodos(projectId);
+        }
+      }
+    });
+  });
 }
 
 
