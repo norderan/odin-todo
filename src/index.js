@@ -83,18 +83,49 @@ console.log("Project List:", controller.projectList);
 
 saveProjectsToLocalStorage()
 // display the projects
-const projectContainer = document.getElementById("projects-container");
-controller.projectList.forEach(project => {
-  const projectElement = document.createElement("div");
-  projectElement.dataset.projectId = project.projectId; 
-  projectElement.classList.add("project-card");
-  projectElement.innerHTML = `
-    <h2>${project.title}</h2>
-    <p>${project.description}</p>
-    <p>${project.isCompleted ? "Completed" : "Ongoing"}</p>
-  `;
-  projectContainer.appendChild(projectElement);
-});
+displayProjects();
+function displayProjects() {
+  const projectContainer = document.getElementById("projects-container");
+  controller.projectList.forEach(project => {
+    const projectElement = document.createElement("div");
+    projectElement.dataset.projectId = project.projectId; 
+    projectElement.classList.add("project-card");
+    projectElement.innerHTML = `
+      <h2>${project.title}</h2>
+      <p>${project.description}</p>
+      <div> 
+        <button class="complition-status-project">${project.isCompleted ? "Completed" : "Not Completed"}</button>
+        <button class="delete-project">Delete</button>
+      </div>
+    `;
+    projectContainer.appendChild(projectElement);
+    const projectDeleteButton = projectElement.querySelectorAll(".delete-project");
+    projectDeleteButton.forEach(button => {
+      button.addEventListener("click", (e) => {
+        const projectId = e.target.closest(".project-card").dataset.projectId;
+        console.log("Project ID:", projectId);
+        controller.removeProject(projectId);
+        clearTodosContainer();
+        projectContainer.removeChild(projectElement);
+      });
+    });
+
+    const projectCompletionButtons = projectElement.querySelectorAll(".complition-status-project");
+    projectCompletionButtons.forEach(button => {
+      button.addEventListener("click", (e) => {
+        const projectId = e.target.closest(".project-card").dataset.projectId;
+        console.log("Project ID:", projectId);
+        const project = controller.getProjectById(projectId);
+        if (project) {
+          project.changeCompletionStatus(!project.isCompleted);
+          console.log("Project completion status changed:", project.isCompleted);
+          clearProjectContainer();
+          displayProjects();
+        }
+      });
+    });
+  });
+}
 
 
 // Event listener for project card click
@@ -109,6 +140,14 @@ projectCards.forEach(card => {
   });
 });
 
+
+// clear project container
+const projectContainer = document.getElementById("projects-container");
+function clearProjectContainer() {
+  while (projectContainer.firstChild) {
+    projectContainer.removeChild(projectContainer.firstChild);
+  }
+}
 // clear todos container
 const todosContainer = document.getElementById("todos-container");
 function clearTodosContainer() {
@@ -117,31 +156,50 @@ function clearTodosContainer() {
   }
 }
 
+
+const addTodoButton = document.createElement("button");
+addTodoButton.textContent = "+";
+addTodoButton.id = "open-todo-dialog";
 // Load todos for the selected project
 function loadTodos(projectId) {
   const project = controller.getProjectById(projectId);
-  console.log("Project:", project);
   if (project) {
     const todoList = project.todos;
+    console.log("Todo List:", todoList);
     todoList.forEach(todo => {
-      const todoElement = document.createElement("div");
-      todoElement.dataset.todoId = todo.itemId; 
-      todoElement.classList.add("todo-card");
-      todoElement.innerHTML = `
-        <h3>${todo.title}</h3>
-        <p>${todo.description}</p>
-        <p>Due Date: ${todo.dueDate}</p>
-        <p>Priority: ${todo.priority}</p>
-        <div> 
-          <button class="complition-status">${todo.isCompleted ? "Completed" : "Not Completed"}</button>
-          <button class="delete-todo">Delete</button>
-        </div>
-      `;
+      const todoElement = createTodoElement(todo);
       todosContainer.appendChild(todoElement);
     });
+
+    addTodoButton.dataset.parentProjectId = projectId;
+    todosContainer.appendChild(addTodoButton);
+    todoFormHandler();
   }
 
+  attachTodoDeleteListeners(projectId);
+  attachTodoCompletionListeners(projectId);
+}
 
+// Create a todo element
+function createTodoElement(todo) {
+  const todoElement = document.createElement("div");
+  todoElement.dataset.todoId = todo.itemId;
+  todoElement.classList.add("todo-card");
+  todoElement.innerHTML = `
+    <h3>${todo.title}</h3>
+    <p>${todo.description}</p>
+    <p>Due Date: ${todo.dueDate}</p>
+    <p>Priority: ${todo.priority}</p>
+    <div> 
+      <button class="complition-status">${todo.isCompleted ? "Completed" : "Not Completed"}</button>
+      <button class="delete-todo">Delete</button>
+    </div>
+  `;
+  return todoElement;
+}
+
+// Attach delete listeners to todos
+function attachTodoDeleteListeners(projectId) {
   const todoDeleteButtons = document.querySelectorAll(".delete-todo");
   todoDeleteButtons.forEach(button => {
     button.addEventListener("click", (e) => {
@@ -155,7 +213,10 @@ function loadTodos(projectId) {
       }
     });
   });
+}
 
+// Attach completion status listeners to todos
+function attachTodoCompletionListeners(projectId) {
   const todoCompletionButtons = document.querySelectorAll(".complition-status");
   todoCompletionButtons.forEach(button => {
     button.addEventListener("click", (e) => {
@@ -175,4 +236,83 @@ function loadTodos(projectId) {
   });
 }
 
+
+// Forms
+
+const projectForm = document.querySelector('#project-form');
+const projectDialog = document.querySelector("#project-dialog");
+
+const openProjectDialogButton = document.getElementById("open-project-dialog");
+const closeProjectDialogButton = document.getElementById("close-project-dialog");
+
+
+openProjectDialogButton.addEventListener("click", () => {
+  projectDialog.showModal();
+});
+
+closeProjectDialogButton.addEventListener("click", () => {
+  projectDialog.close();
+});
+
+projectForm.addEventListener('submit', function (event) {
+  event.preventDefault(); 
+
+  const formData = new FormData(projectForm);
+  controller.addProject(
+  formData.get("project-name"),
+  formData.get("project-description")
+  );
+
+  projectForm.reset();
+  projectDialog.close();
+  clearProjectContainer();
+  displayProjects();
+});
+
+
+
+function todoFormHandler() {
+  const todoForm = document.getElementById('todo-form');
+  const todoDialog = document.getElementById("todo-dialog");
+
+  const openTodoDialogButton = document.getElementById("open-todo-dialog");
+  const closeTodoDialogButton = document.getElementById("todo-close-button");
+
+  openTodoDialogButton.addEventListener("click", () => {
+    todoDialog.showModal();
+  });
+
+  closeTodoDialogButton.addEventListener("click", () => {
+    todoDialog.close();
+  });
+
+  todoForm.addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    const formData = new FormData(todoForm);
+    const title = formData.get("todo-title");
+    const description = formData.get("todo-description");
+    const dueDate = formData.get("todo-dueDate");
+
+
+    const projectId = openTodoDialogButton.dataset.parentProjectId;
+    const project = controller.getProjectById(projectId);
+    if (project) {
+      project.addTodo(
+        title,
+        description,
+        dueDate,
+        1, // Default priority
+        false // Default completion status
+      );
+      const todoElement = createTodoElement(project.getTodoById(project.todos[project.todos.length - 1].itemId));
+      todosContainer.appendChild(todoElement);
+      attachTodoDeleteListeners(projectId);
+      attachTodoCompletionListeners(projectId);
+    }
+
+    todoForm.reset();
+    todoDialog.close();
+  });
+}
 
